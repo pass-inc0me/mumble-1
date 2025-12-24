@@ -1,59 +1,17 @@
 #!/bin/bash
 
-# --- 1. INSTALLATION SECTION ---
+# 1. INSTALLATION
 echo "Installing Mumble and Bore..."
-sudo apt-get update
-sudo apt-get install -y mumble-server wget
-
-# Download and install Bore (the tunnel tool)
+sudo apt-get update && sudo apt-get install -y mumble-server wget openssl
 wget https://github.com/ekzhang/bore/releases/download/v0.6.0/bore-v0.6.0-x86_64-unknown-linux-musl.tar.gz
 tar -xf bore-v0.6.0-x86_64-unknown-linux-musl.tar.gz
 sudo mv bore /usr/local/bin/
-rm bore-v0.6.0-x86_64-unknown-linux-musl.tar.gz
 
-# --- 2. IDENTITY SECTION (Hardcoded Keys) ---
-cat <<EOF > server.key
------BEGIN PRIVATE KEY-----
-MIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQDPr9S/n6mZlOAn
-B2P9N7m4V6Y8X0Y9W2m5X+P1X9T6qW4mX2P1X9T6qW4mX2P1X9T6qW4mX2P1X9T6
-qW4mX2P1X9T6qW4mX2P1X9T6qW4mX2P1X9T6qW4mX2P1X9T6qW4mX2P1X9T6qW4m
-X2P1X9T6qW4mX2P1X9T6qW4mX2P1X9T6qW4mX2P1X9T6qW4mX2P1X9T6qW4mX2P1
-X9T6qW4mX2P1X9T6qW4mX2P1X9T6qW4mX2P1X9T6qW4mX2P1X9T6qW4mX2P1X9T6
-qW4mX2P1X9T6qW4mXAgMBAAECggEBAK9X5X9T6qW4mX2P1X9T6qW4mX2P1X9T6qW
-4mX2P1X9T6qW4mX2P1X9T6qW4mX2P1X9T6qW4mX2P1X9T6qW4mX2P1X9T6qW4mX2
-P1X9T6qW4mX2P1X9T6qW4mX2P1X9T6qW4mX2P1X9T6qW4mX2P1X9T6qW4mX2P1X
-9T6qW4mX2P1X9T6qW4mX2P1X9T6qW4mX2P1X9T6qW4mX2P1X9T6qW4mX2P1X9T6q
-W4mX2P1X9T6qW4mX2P1X9T6qW4mX2P1X9T6qW4mX2P1X9T6qW4mX2P1X9T6qW4mX
-2P1X9T6qW4mX2P1X9T6qW4mXAgEA9T6qW4mX2P1X9T6qW4mX2P1X9T6qW4mX2P1X
-9T6qW4mX2P1X9T6qW4mX2P1X9T6qW4mX2P1X9T6qW4mX2P1X9T6qW4mXAgEA7T6q
-W4mX2P1X9T6qW4mX2P1X9T6qW4mX2P1X9T6qW4mX2P1X9T6qW4mX2P1X9T6qW4mX
-2P1X9T6qW4mX2P1X9T6qW4mXAgEA3T6qW4mX2P1X9T6qW4mX2P1X9T6qW4mX2P1X
-9T6qW4mX2P1X9T6qW4mX2P1X9T6qW4mX2P1X9T6qW4mX2P1X9T6qW4mXAgEA0T6q
-W4mX2P1X9T6qW4mX2P1X9T6qW4mX2P1X9T6qW4mX2P1X9T6qW4mX2P1X9T6qW4mX
-2P1X9T6qW4mX2P1X9T6qW4mXAgEA
------END PRIVATE KEY-----
-EOF
+# 2. GENERATE VALID MATCHING KEYS
+# This creates a real, working SSL pair so Mumble doesn't crash
+openssl req -x509 -newkey rsa:2048 -nodes -keyout server.key -out server.crt -subj "/CN=MumbleBillboard" -days 365
 
-cat <<EOF > server.crt
------BEGIN CERTIFICATE-----
-MIICwjCCAasCCQCO5G2Jt1U3NTANBgkqhkiG9w0BAQsFADAcMRowGAYDVQQDDBFN
-dW1ibGVCaWxsYm9hcmQwHhcNMjQxMjI0MTA0ODAwWhcNMzQxMjIyMTA0ODAwWjAc
-MRowGAYDVQQDDBFNdW1ibGVCaWxsYm9hcmQwggEiMA0GCSqGSIb3DQEBAQUAA4IB
-DwAwggEKAoIBAQDPr9S/n6mZlOAnB2P9N7m4V6Y8X0Y9W2m5X+P1X9T6qW4mX2P1
-X9T6qW4mX2P1X9T6qW4mX2P1X9T6qW4mX2P1X9T6qW4mX2P1X9T6qW4mX2P1X9T6
-qW4mX2P1X9T6qW4mX2P1X9T6qW4mX2P1X9T6qW4mX2P1X9T6qW4mX2P1X9T6qW4m
-X2P1X9T6qW4mX2P1X9T6qW4mX2P1X9T6qW4mX2P1X9T6qW4mX2P1X9T6qW4mX2P1
-X9T6qW4mX2P1X9T6qW4mX2P1X9T6qW4mX2P1X9T6qW4mX2P1X9T6qW4mXAgMBAAEw
-DQYJKoZIhvcNAQELBQADggEBAE1X9T6qW4mX2P1X9T6qW4mX2P1X9T6qW4mX2P1X
-9T6qW4mX2P1X9T6qW4mX2P1X9T6qW4mX2P1X9T6qW4mX2P1X9T6qW4mX2P1X9T6q
-W4mX2P1X9T6qW4mX2P1X9T6qW4mX2P1X9T6qW4mX2P1X9T6qW4mX2P1X9T6qW4mX
-2P1X9T6qW4mX2P1X9T6qW4mX2P1X9T6qW4mX2P1X9T6qW4mX2P1X9T6qW4mX2P1X
-9T6qW4mX2P1X9T6qW4mX2P1X9T6qW4mX2P1X9T6qW4mX2P1X9T6qW4mX2P1X9T6q
-W4mX2P1X9T6qW4mX
------END CERTIFICATE-----
-EOF
-
-# --- 3. CONFIGURATION SECTION ---
+# 3. CONFIGURATION
 cat <<EOF > mumble.ini
 database=mumble.sqlite
 icesecretwrite=
@@ -63,17 +21,19 @@ sslKey=server.key
 welcometext="<br />Welcome to <b>GitHub Billboard</b>"
 port=64738
 users=100
-registerName=GitHub Billboard
-registerUrl=https://github.com
+# We will leave registration off for just a second to ensure it boots
 EOF
 
-# --- 4. EXECUTION SECTION ---
+# 4. EXECUTION
 echo "Starting Mumble Server..."
-# Run in background with -fg to keep it from detaching completely
-mumble-server -ini mumble.ini &
+# We use -fg here so we can see the logs if it fails again
+mumble-server -ini mumble.ini -fg &
 
-# Give Mumble a second to start
-sleep 2
+sleep 3
 
-echo "Starting Bore Tunnel..."
+echo "--------------------------------------------------"
+echo "SERVER IS LIVE!"
+echo "Connect to: bore.pub:19132 (or whatever port shows below)"
+echo "--------------------------------------------------"
+
 bore local 64738 --to bore.pub
