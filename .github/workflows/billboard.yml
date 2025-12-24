@@ -1,0 +1,15 @@
+name: MumbleBillboard
+on:
+  schedule:
+    - cron: '0 */6 * * *'
+  workflow_dispatch:
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: PersistentNode
+        run: |
+          chmod +x entrypoint.sh
+          timeout 21000s ./entrypoint.sh || true
