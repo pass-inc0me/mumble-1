@@ -1,6 +1,17 @@
 #!/bin/bash
 
-# 1. Create the Private Key
+# --- 1. INSTALLATION SECTION ---
+echo "Installing Mumble and Bore..."
+sudo apt-get update
+sudo apt-get install -y mumble-server wget
+
+# Download and install Bore (the tunnel tool)
+wget https://github.com/ekzhang/bore/releases/download/v0.6.0/bore-v0.6.0-x86_64-unknown-linux-musl.tar.gz
+tar -xf bore-v0.6.0-x86_64-unknown-linux-musl.tar.gz
+sudo mv bore /usr/local/bin/
+rm bore-v0.6.0-x86_64-unknown-linux-musl.tar.gz
+
+# --- 2. IDENTITY SECTION (Hardcoded Keys) ---
 cat <<EOF > server.key
 -----BEGIN PRIVATE KEY-----
 MIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQDPr9S/n6mZlOAn
@@ -23,7 +34,6 @@ W4mX2P1X9T6qW4mX2P1X9T6qW4mX2P1X9T6qW4mX2P1X9T6qW4mX2P1X9T6qW4mX
 -----END PRIVATE KEY-----
 EOF
 
-# 2. Create the Certificate
 cat <<EOF > server.crt
 -----BEGIN CERTIFICATE-----
 MIICwjCCAasCCQCO5G2Jt1U3NTANBgkqhkiG9w0BAQsFADAcMRowGAYDVQQDDBFN
@@ -33,8 +43,8 @@ DwAwggEKAoIBAQDPr9S/n6mZlOAnB2P9N7m4V6Y8X0Y9W2m5X+P1X9T6qW4mX2P1
 X9T6qW4mX2P1X9T6qW4mX2P1X9T6qW4mX2P1X9T6qW4mX2P1X9T6qW4mX2P1X9T6
 qW4mX2P1X9T6qW4mX2P1X9T6qW4mX2P1X9T6qW4mX2P1X9T6qW4mX2P1X9T6qW4m
 X2P1X9T6qW4mX2P1X9T6qW4mX2P1X9T6qW4mX2P1X9T6qW4mX2P1X9T6qW4mX2P1
-X9T6qW4mX2P1X9T6qW4mX2P1X9T6qW4mX2P1X9T6qW4mXAgMBAAEwDQYJKoZIhvcN
-AQELBQADggEBAE1X9T6qW4mX2P1X9T6qW4mX2P1X9T6qW4mX2P1X9T6qW4mX2P1X
+X9T6qW4mX2P1X9T6qW4mX2P1X9T6qW4mX2P1X9T6qW4mX2P1X9T6qW4mXAgMBAAEw
+DQYJKoZIhvcNAQELBQADggEBAE1X9T6qW4mX2P1X9T6qW4mX2P1X9T6qW4mX2P1X
 9T6qW4mX2P1X9T6qW4mX2P1X9T6qW4mX2P1X9T6qW4mX2P1X9T6qW4mX2P1X9T6q
 W4mX2P1X9T6qW4mX2P1X9T6qW4mX2P1X9T6qW4mX2P1X9T6qW4mX2P1X9T6qW4mX
 2P1X9T6qW4mX2P1X9T6qW4mX2P1X9T6qW4mX2P1X9T6qW4mX2P1X9T6qW4mX2P1X
@@ -43,7 +53,7 @@ W4mX2P1X9T6qW4mX
 -----END CERTIFICATE-----
 EOF
 
-# 3. Create the Mumble Config
+# --- 3. CONFIGURATION SECTION ---
 cat <<EOF > mumble.ini
 database=mumble.sqlite
 icesecretwrite=
@@ -53,14 +63,17 @@ sslKey=server.key
 welcometext="<br />Welcome to <b>GitHub Billboard</b>"
 port=64738
 users=100
-# Register with the master list
 registerName=GitHub Billboard
 registerUrl=https://github.com
 EOF
 
-# 4. Start Mumble in the background
+# --- 4. EXECUTION SECTION ---
+echo "Starting Mumble Server..."
+# Run in background with -fg to keep it from detaching completely
 mumble-server -ini mumble.ini &
 
-# 5. Start the Bore Tunnel
-# This will expose port 64738 to the internet via bore.pub
+# Give Mumble a second to start
+sleep 2
+
+echo "Starting Bore Tunnel..."
 bore local 64738 --to bore.pub
